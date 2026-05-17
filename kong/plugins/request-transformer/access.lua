@@ -163,6 +163,7 @@ end
 local function transform_headers(conf, template_env)
   local headers = get_headers()
   local headers_to_remove = {}
+  local headers_to_remove_n = 0
 
   headers.host = nil
 
@@ -171,7 +172,8 @@ local function transform_headers(conf, template_env)
     name = name:lower()
     if headers[name] then
       headers[name] = nil
-      headers_to_remove[name] = true
+      headers_to_remove_n = headers_to_remove_n + 1
+      headers_to_remove[headers_to_remove_n] = name
     end
   end
 
@@ -188,7 +190,8 @@ local function transform_headers(conf, template_env)
     end
 
     if need_remove then
-      headers_to_remove[old_name] = true
+      headers_to_remove_n = headers_to_remove_n + 1
+      headers_to_remove[headers_to_remove_n] = old_name
     end
   end
 
@@ -224,8 +227,10 @@ local function transform_headers(conf, template_env)
     headers[name] = append_value(headers[name], value)
   end
 
-  for name, _ in pairs(headers_to_remove) do
-    clear_header(name)
+  if headers_to_remove_n > 0 then
+    for i = 1, headers_to_remove_n do
+      clear_header(headers_to_remove[i])
+    end
   end
 
   set_headers(headers)
